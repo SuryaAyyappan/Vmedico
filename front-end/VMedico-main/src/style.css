@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+/* Use system fonts for fast, native rendering */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+  Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
+
+@theme {
+  /* Classic Ocean Blue scale */
+  --color-blue-50:  #f8fcff;
+  --color-blue-100: #e6f4ff;
+  --color-blue-200: #ccebff;
+  --color-blue-300: #99d5ff;
+  --color-blue-400: #52b8ff;
+  --color-blue-500: #1890ff; /* Primary brand */
+  --color-blue-600: #0071d9;
+  --color-blue-700: #005bb3;
+  --color-blue-800: #003f7f;
+  --color-blue-900: #002959;
+
+  /* Optional ocean accent scale */
+  --color-ocean-50:  #f0f8ff;
+  --color-ocean-100: #e3f1ff;
+  --color-ocean-200: #c6e3ff;
+  --color-ocean-300: #9ccfff;
+  --color-ocean-400: #6bb6ff;
+  --color-ocean-500: #409bff;
+  --color-ocean-600: #2b84eb;
+  --color-ocean-700: #1e69c2;
+  --color-ocean-800: #164e91;
+  --color-ocean-900: #033d8b;
+}
+
+.elev-1 { box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06); }
+.elev-2 { box-shadow: 0 2px 6px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.08); }
+.elev-3 { box-shadow: 0 6px 10px rgba(0,0,0,.10), 0 1px 18px rgba(0,0,0,.10); }
+.surface { @apply bg-white; }
+.surface-tonal { @apply bg-blue-50; }
+.on-surface { @apply text-slate-900; }
+.primary { @apply bg-blue-600 text-white; }
+.on-primary { @apply text-white; }
+.outline { @apply border border-slate-200; }
+.state:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+
+.btn-primary {
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-lg bg-blue-600 text-white font-medium transition;
+  box-shadow: 0 10px 30px rgba(17,42,121,0.15);
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-lg border border-blue-600 text-blue-700 font-medium transition hover:bg-blue-50;
+}
+
+/* Inputs: subtle gray background for medical look */
+.form-input { @apply w-full rounded-lg border border-slate-300 bg-[#f3f3f5] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400; }
