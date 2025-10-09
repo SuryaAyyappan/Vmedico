@@ -117,7 +117,7 @@ const loginUser = async () => {
       password: password.value
     })
 
-    alert(response.data.message)
+    console.log(response.data);
     // Redirect to dummy dashboard after success
     router.push('/dashboard')
   } catch (error: any) {
