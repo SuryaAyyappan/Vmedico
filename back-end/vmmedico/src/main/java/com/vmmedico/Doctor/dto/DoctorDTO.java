@@ -14,7 +14,6 @@ public class DoctorDTO {
     private String specialization;
     private String qualification;
     private String phoneNumber;
-    private Gender gender;
     private String dob;
     private Long userId;
 }
