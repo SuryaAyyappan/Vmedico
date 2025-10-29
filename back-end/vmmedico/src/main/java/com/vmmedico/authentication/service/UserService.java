@@ -168,4 +168,8 @@ public class UserService {
         USER_NOT_FOUND,
         WRONG_PASSWORD
     }
+
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
 }

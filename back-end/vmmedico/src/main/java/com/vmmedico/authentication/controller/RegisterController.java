@@ -4,6 +4,7 @@ package com.vmmedico.authentication.controller;
 import com.vmmedico.authentication.dto.*;
 import com.vmmedico.authentication.entity.*;
 import com.vmmedico.authentication.service.*;
+import com.vmmedico.common.Gender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class RegisterController {
             Patient patient = new Patient();
             patient.setUser(savedUser);
             patient.setName(request.getName());
-            patient.setGender(Patient.Gender.valueOf(request.getGender().toUpperCase()));
+            patient.setGender(Gender.valueOf(request.getGender().toUpperCase()));
             patient.setDob(request.getDob());
             patient.setAddress(request.getAddress());
             patient.setBloodGroup(request.getBloodGroup());
@@ -103,7 +104,7 @@ public class RegisterController {
             Doctor doctor = new Doctor();
             doctor.setUser(savedUser);
             doctor.setName(request.getName());
-            doctor.setGender(Doctor.Gender.valueOf(request.getGender().toUpperCase()));
+            doctor.setGender(Gender.valueOf(request.getGender().toUpperCase()));
             doctor.setDob(request.getDob());
             doctor.setSpecialization(request.getSpecialization());
             doctor.setQualification(request.getQualification());
@@ -156,12 +157,33 @@ public class RegisterController {
     }
 
     // -------------------- Login --------------------
+    // In RegisterController (replace your existing /login mapping)
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request,
+            @RequestParam(value = "role", required = false) String roleParam) {
+
+        String requestedRole = (roleParam != null && !roleParam.isBlank())
+                ? roleParam.toUpperCase()
+                : null; // optional - you can enforce required
+
         var optionalUser = userService.findByUsernameOrEmail(request.getUsernameOrEmail());
         if (optionalUser.isEmpty()) return badRequest("Username/email not registered");
 
         User user = optionalUser.get();
+
+        // If role was provided, enforce it
+        if (requestedRole != null) {
+            try {
+                if (!user.getRole().name().equalsIgnoreCase(requestedRole)) {
+                    return badRequest("User role mismatch. Login using the correct role endpoint/page.");
+                }
+            } catch (Exception ex) {
+                return badRequest("Invalid role provided.");
+            }
+        }
+
+        // Now verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword()))
             return badRequest("Password is incorrect");
 

@@ -1,5 +1,6 @@
 package com.vmmedico.authentication.entity;
 
+import com.vmmedico.common.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,9 +22,7 @@ public class Patient {
     @Column(nullable = false)
     private Gender gender;
 
-    public enum Gender {
-        MALE, FEMALE, OTHER
-    }
+
     private String dob;
     private String address;
     private String bloodGroup;

@@ -15,11 +15,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for testing endpoints
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/doctors/**").permitAll()
                         .requestMatchers(
+                                "/api/appointments/**",
                                 "/api/register/**",       // Open registration endpoints
                                 "/api/login",             // Open login
                                 "/api/forgot-password",   // Open forgot password
-                                "/api/change-password"    // Open change password endpoint
+                                "/api/change-password",
+                                "/api/doctors"// Open change password endpoint
                         ).permitAll()
                         .anyRequest().authenticated() // Other endpoints require authentication
                 )
