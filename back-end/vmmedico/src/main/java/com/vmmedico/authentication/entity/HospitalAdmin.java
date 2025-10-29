@@ -2,6 +2,7 @@ package com.vmmedico.authentication.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.vmmedico.authentication.enums.Role;
 
 @Entity
 @Table(name = "hospital_admins")
@@ -16,12 +17,22 @@ public class HospitalAdmin {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false)
     private String hospitalName;
-    private String designation;
+
+    @Column(unique = true, nullable = false)
+    private String registrationNumber;
+
+    @Column(unique = true, nullable = false)
+    private String licenseNumber;
 
     @Column(unique = true, nullable = false)
     private String phoneNumber;
+
+    private String address;
+
+    @Column(nullable = false)
+    private Boolean verified = false;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)

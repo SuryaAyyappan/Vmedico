@@ -1,5 +1,6 @@
 package com.vmmedico.authentication.entity;
 
+import com.vmmedico.authentication.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,9 +39,7 @@ public class Doctor {
 
     @Column(nullable = false)
     private String dob;
-    public enum Gender {
-        MALE, FEMALE, OTHER
-    }
+
 
 
 }

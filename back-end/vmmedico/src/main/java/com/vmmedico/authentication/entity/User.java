@@ -1,5 +1,6 @@
 package com.vmmedico.authentication.entity;
 
+import com.vmmedico.authentication.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,10 +12,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class User {
-
-    public enum Role {
-        PATIENT, DOCTOR, HOSPITAL_ADMIN, LAB
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +31,5 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private Role role;  // ✅ Now imported from com.vmmedico.authentication.enums
 }

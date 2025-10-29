@@ -1,3 +1,4 @@
+
 package com.vmmedico.authentication.repository;
 
 import com.vmmedico.authentication.entity.Doctor;
@@ -6,6 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
+
     boolean existsByPhoneNumber(String phoneNumber);
+
+    boolean existsByLicenseNumber(String licenseNumber);
+
     Optional<Doctor> findByUser(User user);
+
 }
+
