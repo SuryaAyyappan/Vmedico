@@ -1,32 +1,38 @@
 package com.vmmedico.authentication.configuration;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
+    @Autowired
+    private JwtFilter jwtFilter;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for testing endpoints
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/doctors/**").permitAll()
-                        .requestMatchers(
-                                "/api/appointments/**",
-                                "/api/register/**",       // Open registration endpoints
-                                "/api/login",             // Open login
-                                "/api/forgot-password",   // Open forgot password
-                                "/api/change-password",
-                                "/api/doctors"// Open change password endpoint
-                        ).permitAll()
-                        .anyRequest().authenticated() // Other endpoints require authentication
+                        .requestMatchers("/api/register/**", "/api/login", "/api/forgot-password","/api/change-password").permitAll()
+                        .requestMatchers("/api/patient/**").hasAuthority("PATIENT")
+                        .requestMatchers("/api/doctor/**").hasAuthority("DOCTOR")
+                        .requestMatchers("/api/hospital/**","/api/hospital/add-doctor").hasAuthority("HOSPITAL_ADMIN")
+                        .requestMatchers("/api/lab/**").hasAuthority("LAB")
+                        .anyRequest().authenticated()
                 )
-                .httpBasic(httpBasic -> {}); // Basic auth for other endpoints
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -34,5 +40,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

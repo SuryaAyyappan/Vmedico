@@ -1,6 +1,6 @@
 package com.vmmedico.authentication.entity;
 
-import com.vmmedico.common.Gender;
+import com.vmmedico.authentication.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +21,6 @@ public class Patient {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
-
 
     private String dob;
     private String address;
