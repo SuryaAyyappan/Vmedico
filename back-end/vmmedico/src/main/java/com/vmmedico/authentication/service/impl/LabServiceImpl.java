@@ -1,12 +1,14 @@
 package com.vmmedico.authentication.service.impl;
 
 import com.vmmedico.authentication.entity.Lab;
+import com.vmmedico.authentication.entity.User;
 import com.vmmedico.authentication.repository.LabRepository;
 import com.vmmedico.authentication.service.LabService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LabServiceImpl implements LabService {
@@ -43,5 +45,14 @@ public class LabServiceImpl implements LabService {
     @Override
     public Lab saveLab(Lab lab) {
         return labRepository.save(lab);
+    }
+    @Override
+    public Optional<Lab> findByUser(User user) {
+        return labRepository.findByUser(user);
+    }
+
+    @Override
+    public Optional<Lab> findById(Long userId) {
+        return labRepository.findById(userId);
     }
 }

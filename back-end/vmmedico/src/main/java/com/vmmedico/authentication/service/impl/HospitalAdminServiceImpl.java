@@ -1,6 +1,7 @@
 package com.vmmedico.authentication.service.impl;
 
 import com.vmmedico.authentication.entity.HospitalAdmin;
+import com.vmmedico.authentication.entity.User;
 import com.vmmedico.authentication.repository.HospitalAdminRepository;
 import com.vmmedico.authentication.service.HospitalAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,5 +49,9 @@ public class HospitalAdminServiceImpl implements HospitalAdminService {
     @Override
     public Optional<HospitalAdmin> findById(Long id) {
         return hospitalAdminRepository.findById(id);
+    }
+    @Override
+    public Optional<HospitalAdmin> findByUser(User user) {
+        return hospitalAdminRepository.findByUser(user);
     }
 }

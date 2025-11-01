@@ -263,56 +263,82 @@ public class RegisterController {
     }
 
     @PostMapping("/hospital/add-doctor")
-    public ResponseEntity<?> addDoctor(@RequestBody AddDoctorRequest request) {
-        try {
-            // Check if hospital admin exists
-            HospitalAdmin admin = hospitalAdminService.findById(request.getHospitalAdminId())
-                    .orElseThrow(() -> new RuntimeException("Hospital admin not found"));
+    public ResponseEntity<?> addDoctor(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody AddDoctorRequest request) {
 
-            // Check duplicates
+        try {
+
+            String token = authHeader.substring(7);
+            if (!jwtTokenUtil.validateToken(token)) {
+                return ResponseEntity.status(401).body("Invalid or expired token");
+            }
+
+            Long userId = jwtTokenUtil.getUserIdFromToken(token);
+            String role = jwtTokenUtil.getRoleFromToken(token);
+
+            if (!role.equalsIgnoreCase("HOSPITAL_ADMIN")) {
+                return ResponseEntity.status(403).body("Access denied: only hospital admins can add doctors.");
+            }
+
+
+            Optional<User> userOpt = userService.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+
+            Optional<HospitalAdmin> adminOpt = hospitalAdminService.findByUser(userOpt.get());
+            if (adminOpt.isEmpty()) {
+                return ResponseEntity.status(404).body("Hospital admin profile not found");
+            }
+            HospitalAdmin admin = adminOpt.get();
+
             if (doctorService.existsByPhoneNumber(request.getPhoneNumber()))
                 return ResponseEntity.badRequest().body("Phone number already exists");
             if (userService.emailExists(request.getEmail()))
                 return ResponseEntity.badRequest().body("Email already exists");
+            if (request.getLicenseNumber() == null || request.getLicenseNumber().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("License number cannot be blank");
+            }
 
-            // Generate random password
+
+
             String generatedPassword = generatePassword();
-
-            // ✅ Encode password before saving
             String encodedPassword = passwordEncoder.encode(generatedPassword);
 
-            // Create user for doctor
-            User user = userService.saveUser(User.builder()
+
+            User doctorUser = userService.saveUser(User.builder()
                     .username(request.getEmail().split("@")[0])
                     .email(request.getEmail())
                     .phoneNumber(request.getPhoneNumber())
-                    .password(encodedPassword)  // ✅ FIXED
+                    .password(encodedPassword)
                     .role(Role.DOCTOR)
                     .build());
 
-            // Create doctor entity
             Doctor doctor = Doctor.builder()
-                    .user(user)
+                    .user(doctorUser)
                     .name(request.getName())
                     .specialization(request.getSpecialization())
                     .qualification(request.getQualification())
                     .licenseNumber(request.getLicenseNumber())
                     .gender(Gender.valueOf(request.getGender().toUpperCase()))
+                    .hospitalName(request.getHospitalName())
                     .dob(request.getDob())
                     .phoneNumber(request.getPhoneNumber())
                     .build();
 
             Doctor savedDoctor = doctorService.saveDoctor(doctor);
 
-            // Send credentials via email
+
             emailService.sendMail(
                     request.getEmail(),
                     "Welcome to VMedico - Your Doctor Account",
                     "Dear " + request.getName() + ",\n\n" +
-                            "You have been added to " + admin.getHospitalName() + ".\n" +
+                            "You have been added to VMedico platform under" + admin.getHospitalName() + ".\n" +
                             "Login using the following credentials:\n\n" +
-                            "Username: " + user.getUsername() + "\n" +
-                            "Password: " + generatedPassword + "\n\n" +  // ✅ send plain one
+                            "Username: " + doctorUser.getUsername() + "\n" +
+                            "Password: " + generatedPassword + "\n\n" +
                             "Please change your password after first login.\n\n" +
                             "Best Regards,\nVMedico Team"
             );
@@ -325,6 +351,8 @@ public class RegisterController {
             return ResponseEntity.badRequest().body("Error adding doctor: " + e.getMessage());
         }
     }
+
+
     private String generatePassword() {
         int length = 10; // password length
         String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -359,7 +387,6 @@ public class RegisterController {
     }
 
 
-
     // ---------- LOGIN ----------
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -375,7 +402,12 @@ public class RegisterController {
             return ResponseEntity.badRequest()
                     .body(new ErrorResponse("Role mismatch. Please login through " + user.getRole().name() + " portal."));
 
-        String token = jwtTokenUtil.generateToken(user.getUsername(), user.getRole().name());
+        String token = jwtTokenUtil.generateToken(
+                user.getId(),
+                user.getUsername(),
+                user.getRole().name()
+        );
+
         LoginResponse response = new LoginResponse(user.getUsername(), user.getRole().name(), token);
 
         return ResponseEntity.ok(new SuccessResponse("Login successful", response));
@@ -450,4 +482,6 @@ public class RegisterController {
 
     }
 }
+
+
 

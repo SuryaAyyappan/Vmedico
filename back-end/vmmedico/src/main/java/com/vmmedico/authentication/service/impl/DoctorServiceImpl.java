@@ -2,12 +2,15 @@ package com.vmmedico.authentication.service.impl;
 
 import com.vmmedico.Doctor.dto.DoctorDTO;
 import com.vmmedico.authentication.entity.Doctor;
+import com.vmmedico.authentication.entity.User;
 import com.vmmedico.authentication.repository.DoctorRepository;
 import com.vmmedico.authentication.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import java.util.Optional;
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
@@ -43,5 +46,13 @@ public class DoctorServiceImpl implements DoctorService {
                         .userId(doc.getUser() != null ? doc.getUser().getId() : null)
                         .build())
                 .toList();
+    }
+    @Override
+    public Optional<Doctor> findByUser(User user) {
+        return doctorRepository.findByUser(user);
+    }
+    @Override
+    public Optional<Doctor> findById(Long userId) {
+        return doctorRepository.findById(userId);
     }
 }

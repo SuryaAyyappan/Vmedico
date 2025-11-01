@@ -12,6 +12,7 @@ public class AddDoctorRequest {
     private String licenseNumber;
     private String gender;
     private String dob;
-    private Long hospitalAdminId; // to link which admin added this doctor
+    private Long hospitalAdminId;
+    private String hospitalName;
 }
 

@@ -12,7 +12,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    private static final String FROM_EMAIL = "sunilraj200419@gmail.com"; // your verified sender
+    private static final String FROM_EMAIL = "virtusa.team@gmail.com"; // your verified sender
 
     @Override
     public void sendMail(String to, String subject, String body) {
