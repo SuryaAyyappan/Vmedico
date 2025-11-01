@@ -4,8 +4,10 @@ import com.vmmedico.Appointment.entity.Appointment;
 import com.vmmedico.Appointment.repo.AppointmentRepository;
 import com.vmmedico.authentication.entity.Doctor;
 import com.vmmedico.authentication.entity.Patient;
+import com.vmmedico.authentication.entity.User;
 import com.vmmedico.authentication.repository.DoctorRepository;
 import com.vmmedico.authentication.repository.PatientRepository;
+import com.vmmedico.common.EmailService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,71 +22,75 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+    private final EmailService emailService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               DoctorRepository doctorRepository,
-                              PatientRepository patientRepository) {
+                              PatientRepository patientRepository,
+                              EmailService emailService) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
+        this.emailService = emailService;
     }
 
-    /**
-     * Books an appointment only in predefined 30-minute slots with 5-minute breaks.
-     */
     @Transactional
-    public ResponseEntity<?> bookAppointment(Long doctorUserId, Long patientUserId,
-                                             LocalDate date, LocalTime startTime) {
-        Doctor doctor = doctorRepository.findByUserId(doctorUserId)
+    public ResponseEntity<?> bookAppointment(Long doctorId, Long patientId, LocalDate date, LocalTime startTime) {
+        Doctor doctor = doctorRepository.findByUserId(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
-        Patient patient = patientRepository.findByUserId(patientUserId)
+        Patient patient = patientRepository.findByUserId(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-        int appointmentMinutes = 30;
-        int breakMinutes = 5;
-        LocalTime endTime = startTime.plusMinutes(appointmentMinutes);
+        User user = patient.getUser();
 
-        // 🗓️ Date validation
-        if (date.isBefore(LocalDate.now())) {
+        LocalTime endTime = startTime.plusHours(1);
+
+        // Prevent booking in past
+        if (date.isBefore(LocalDate.now()) ||
+                (date.isEqual(LocalDate.now()) && startTime.isBefore(LocalTime.now()))) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Cannot book appointment for past dates."
+                    "message", "Cannot book appointments in the past"
             ));
         }
 
-        // ⏰ Time validation (if same day)
-        if (date.isEqual(LocalDate.now()) && startTime.isBefore(LocalTime.now())) {
+        // Validate allowed time ranges
+        LocalTime[] validSlots = {
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0),
+                LocalTime.of(12, 0),
+                LocalTime.of(14, 0),
+                LocalTime.of(15, 0),
+                LocalTime.of(16, 0),
+                LocalTime.of(17, 0)
+        };
+
+        boolean isValidSlot = false;
+        for (LocalTime slot : validSlots) {
+            if (slot.equals(startTime)) {
+                isValidSlot = true;
+                break;
+            }
+        }
+
+        if (!isValidSlot) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Cannot book appointment for past time slots."
+                    "message", "Invalid appointment time. Valid slots are 9-10,10-11,11-12,12-1,2-3,3-4,4-5,5-6"
             ));
         }
 
-        // 🍱 Lunch break validation
-        LocalTime lunchStart = LocalTime.of(12, 20);
-        LocalTime lunchEnd = LocalTime.of(13, 10);
-        if (!(endTime.isBefore(lunchStart) || startTime.isAfter(lunchEnd))) {
+        // Prevent double booking
+        boolean exists = appointmentRepository.existsByDoctorIdAndDateAndStartTime(doctorId, date, startTime);
+        if (exists) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Doctor unavailable during lunch (12:20 - 13:10)"
+                    "message", "This slot is already booked"
             ));
         }
 
-        // 🔁 Overlap validation
-        LocalTime safeStart = startTime.minusMinutes(breakMinutes);
-        LocalTime safeEnd = endTime.plusMinutes(breakMinutes);
-        boolean isConflict = appointmentRepository
-                .existsByDoctorIdAndDateAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
-                        doctor.getId(), date, safeEnd, safeStart);
-
-        if (isConflict) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Selected slot overlaps with another appointment or buffer time."
-            ));
-        }
-
-        // ✅ Save appointment
+        // Save appointment
         Appointment appointment = Appointment.builder()
                 .doctor(doctor)
                 .patient(patient)
@@ -96,19 +102,25 @@ public class AppointmentService {
 
         Appointment saved = appointmentRepository.save(appointment);
 
+        // Send email to patient
+        emailService.sendAppointmentConfirmation(
+                user.getEmail(),
+                patient.getName(),
+                doctor.getName(),
+                date,
+                startTime,
+                endTime
+        );
+
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Appointment booked successfully.",
-                "appointment", Map.of(
-                        "id", saved.getId(),
-                        "doctorId", doctor.getId(),
-                        "patientId", patient.getId(),
-                        "date", date.toString(),
-                        "startTime", startTime.toString(),
-                        "endTime", endTime.toString(),
-                        "status", saved.getStatus().name()
-                )
+                "message", "Appointment booked successfully",
+                "appointmentId", saved.getId(),
+                "doctorId", doctor.getId(),
+                "patientId", patient.getId(),
+                "startTime", startTime.toString(),
+                "endTime", endTime.toString(),
+                "date", date.toString()
         ));
     }
-
 }

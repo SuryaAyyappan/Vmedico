@@ -28,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/doctor/**").hasAuthority("DOCTOR")
                         .requestMatchers("/api/hospital/**","/api/hospital/add-doctor").hasAuthority("HOSPITAL_ADMIN")
                         .requestMatchers("/api/lab/**").hasAuthority("LAB")
-                        .requestMatchers("/api/appointments/**").hasAuthority("A")
+                        .requestMatchers("/api/appointments/**").hasAuthority("PATIENT")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

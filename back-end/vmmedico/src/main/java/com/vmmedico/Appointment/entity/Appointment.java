@@ -14,37 +14,29 @@ import java.time.LocalTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder   // ✅ This enables Appointment.builder()
+@Builder
 public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
+
     private LocalDate date;
-
-    @Column(nullable = false)
     private LocalTime startTime;
-
-    @Column(nullable = false)
     private LocalTime endTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Status status;
 
     public enum Status {
-        CONFIRMED,
-        CANCELLED,
-        COMPLETED
+        CONFIRMED, CANCELLED, COMPLETED
     }
 }
