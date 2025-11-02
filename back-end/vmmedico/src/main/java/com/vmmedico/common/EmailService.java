@@ -3,6 +3,7 @@ package com.vmmedico.common;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,24 @@ public class EmailService {
             mailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    public void sendPrescriptionEmail(String toEmail, String patientName, String doctorName,
+                                      LocalDate date, LocalTime startTime, String fileName, byte[] pdfBytes) {
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject("Your Prescription from " + doctorName);
+            String html = "<p>Dear " + patientName + ",</p>"
+                    + "<p>Your prescription (dated " + date + " at " + startTime + ") is attached.</p>"
+                    + "<p>Regards,<br/>" + (doctorName != null ? doctorName : "Your Doctor") + "</p>";
+            helper.setText(html, true);
+            helper.addAttachment(fileName, new ByteArrayResource(pdfBytes));
+            mailSender.send(msg);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send prescription email", e);
         }
     }
 }
