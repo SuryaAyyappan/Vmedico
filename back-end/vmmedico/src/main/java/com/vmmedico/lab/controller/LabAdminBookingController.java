@@ -124,16 +124,22 @@ public class LabAdminBookingController {
             LabReport rep = reportService.uploadReport(bookingId, file, lab.getUser().getUsername());
 
             // Send email to patient
+            String testName = "";
+            if (booking.getLabTest() != null && booking.getLabTest().getName() != null) {
+                testName = booking.getLabTest().getName();
+            }
+
+            String message = "Dear " + booking.getPatient().getName() + ",\n\n" +
+                    "Your report" + (!testName.isEmpty() ? " for test " + testName : "") +
+                    " on " + booking.getDate() + " is now available. Please login to download.\n\n" +
+                    "Regards,\n" +
+                    lab.getLabName();
+
             emailService.sendMail(
                     booking.getPatient().getUser().getEmail(),
                     "Your Lab Report is Ready - VMedico",
-                    "Dear " + booking.getPatient().getName() + ",\n\n" +
-                            "Your report for test " + (booking.getLabTest() != null ? booking.getLabTest() : "") +
-                            " on " + booking.getDate() + " is now available. Please login to download.\n\n" +
-                            "Regards,\n" +
-                            lab.getLabName()
+                    message
             );
-
             return ResponseEntity.ok(Map.of("message", "Report uploaded", "reportId", rep.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
