@@ -12,6 +12,8 @@ public interface DoctorService {
     boolean existsByPhoneNumber(String phoneNumber);
     boolean existsByLicenseNumber(String licenseNumber);
     Optional<Doctor> findByUser(User user);
-    Optional<Doctor> findById(Long userId);
+    Optional<Doctor> findById(Long id);
+
     List<DoctorDTO> getAllDoctors();
+    List<DoctorDTO> getAllDoctorsbyname(String hospitalName);
 }

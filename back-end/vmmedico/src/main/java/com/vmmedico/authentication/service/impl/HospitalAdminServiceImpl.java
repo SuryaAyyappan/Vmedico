@@ -16,7 +16,7 @@ public class HospitalAdminServiceImpl implements HospitalAdminService {
     @Autowired
     private HospitalAdminRepository hospitalAdminRepository;
 
-    // ✅ Simulated valid registration and license numbers
+    // Simulated valid registration and license numbers
     private static final List<String> VALID_REG_NUMBERS = List.of(
             "REG10001", "REG10002", "REG10003", "REG10004", "REG10005",
             "REG10006", "REG10007", "REG10008", "REG10009", "REG10010"

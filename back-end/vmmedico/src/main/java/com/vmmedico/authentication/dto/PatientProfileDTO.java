@@ -1,6 +1,6 @@
 package com.vmmedico.authentication.dto;
 
-import com.vmmedico.authentication.enums.Gender;
+import com.vmmedico.common.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

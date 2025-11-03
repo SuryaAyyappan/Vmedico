@@ -4,7 +4,7 @@ import com.vmmedico.authentication.configuration.JwtTokenUtil;
 import com.vmmedico.authentication.dto.*;
 import com.vmmedico.authentication.entity.*;
 import com.vmmedico.authentication.enums.Role;
-import com.vmmedico.authentication.enums.Gender;
+import com.vmmedico.common.Gender;
 import com.vmmedico.authentication.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -268,7 +268,6 @@ public class RegisterController {
             @RequestBody AddDoctorRequest request) {
 
         try {
-
             String token = authHeader.substring(7);
             if (!jwtTokenUtil.validateToken(token)) {
                 return ResponseEntity.status(401).body("Invalid or expired token");
@@ -281,17 +280,16 @@ public class RegisterController {
                 return ResponseEntity.status(403).body("Access denied: only hospital admins can add doctors.");
             }
 
-
             Optional<User> userOpt = userService.findById(userId);
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("User not found");
             }
 
-
             Optional<HospitalAdmin> adminOpt = hospitalAdminService.findByUser(userOpt.get());
             if (adminOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Hospital admin profile not found");
             }
+
             HospitalAdmin admin = adminOpt.get();
 
             if (doctorService.existsByPhoneNumber(request.getPhoneNumber()))
@@ -302,12 +300,10 @@ public class RegisterController {
                 return ResponseEntity.badRequest().body("License number cannot be blank");
             }
 
-
-
             String generatedPassword = generatePassword();
             String encodedPassword = passwordEncoder.encode(generatedPassword);
 
-
+            // Create user for doctor
             User doctorUser = userService.saveUser(User.builder()
                     .username(request.getEmail().split("@")[0])
                     .email(request.getEmail())
@@ -316,6 +312,7 @@ public class RegisterController {
                     .role(Role.DOCTOR)
                     .build());
 
+            // Create doctor record
             Doctor doctor = Doctor.builder()
                     .user(doctorUser)
                     .name(request.getName())
@@ -323,19 +320,21 @@ public class RegisterController {
                     .qualification(request.getQualification())
                     .licenseNumber(request.getLicenseNumber())
                     .gender(Gender.valueOf(request.getGender().toUpperCase()))
-                    .hospitalName(request.getHospitalName())
+                    .hospitalName(admin.getHospitalName()) // ✅ auto from admin
                     .dob(request.getDob())
                     .phoneNumber(request.getPhoneNumber())
+                    .consultationFee(request.getConsultationFee()) // ✅ added
+                    .experience(request.getExperience())           // ✅ added
                     .build();
 
             Doctor savedDoctor = doctorService.saveDoctor(doctor);
 
-
+            // Send credentials via email
             emailService.sendMail(
                     request.getEmail(),
                     "Welcome to VMedico - Your Doctor Account",
                     "Dear " + request.getName() + ",\n\n" +
-                            "You have been added to VMedico platform under" + admin.getHospitalName() + ".\n" +
+                            "You have been added to VMedico under " + admin.getHospitalName() + ".\n" +
                             "Login using the following credentials:\n\n" +
                             "Username: " + doctorUser.getUsername() + "\n" +
                             "Password: " + generatedPassword + "\n\n" +
@@ -343,12 +342,10 @@ public class RegisterController {
                             "Best Regards,\nVMedico Team"
             );
 
-            return ResponseEntity.ok(
-                    new SuccessResponse("Doctor added and credentials sent successfully", savedDoctor)
-            );
+            return ResponseEntity.ok("Doctor added successfully and credentials emailed.");
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error adding doctor: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error adding doctor: " + e.getMessage());
         }
     }
 

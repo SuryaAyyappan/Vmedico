@@ -12,7 +12,6 @@ public class AddDoctorRequest {
     private String licenseNumber;
     private String gender;
     private String dob;
-    private Long hospitalAdminId;
-    private String hospitalName;
+    private Double consultationFee;
+    private Integer experience;
 }
-

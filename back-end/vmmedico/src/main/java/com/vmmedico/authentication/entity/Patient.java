@@ -1,6 +1,6 @@
 package com.vmmedico.authentication.entity;
 
-import com.vmmedico.authentication.enums.Gender;
+import com.vmmedico.common.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 

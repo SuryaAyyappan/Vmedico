@@ -27,7 +27,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/patient/**","/api/appointments/book","/api/lab-bookings/book","/api/reports/**").hasAuthority("PATIENT")
                         .requestMatchers("/api/doctor/**").hasAuthority("DOCTOR")
                         .requestMatchers("/api/prescriptions/**").hasAuthority("DOCTOR")
-                        .requestMatchers("/api/hospital/**","/api/hospital/add-doctor").hasAuthority("HOSPITAL_ADMIN")
+                        .requestMatchers("/api/hospital/**","/api/hospital/add-doctor","/api/hospital-admin/**").hasAuthority("HOSPITAL_ADMIN")
                         .requestMatchers("/api/lab/**","/api/lab/add-tests","/api/lab/test/{id}","/api/lab/bookings/all").hasAuthority("LAB")
                         .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().authenticated()

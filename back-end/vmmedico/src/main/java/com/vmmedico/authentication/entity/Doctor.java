@@ -1,6 +1,6 @@
 package com.vmmedico.authentication.entity;
 
-import com.vmmedico.authentication.enums.Gender;
+import com.vmmedico.common.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,4 +45,10 @@ public class Doctor {
 
     @Column(nullable = false)
     private String hospitalName;
+
+    @Column(nullable = false)
+    private Double consultationFee;
+
+    @Column(nullable = false)
+    private Integer experience;
 }
